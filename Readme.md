@@ -29,3 +29,33 @@ Show us how you could setup a service to manage this sort of data:
 Display and interact the data:
  - Display some submission data per institution for each year in either a table or chart
  - Show a list of subjects and which institutions you can study them at
+
+
+# Freds Notes
+
+> Setup storage mechanism to store the data and allow for adding new data (rather than using static JSON files)
+
+
+- Step 1 run any SQL script from vs code in the docker postgres data base.. (hOw dO i dO tHaT ?)
+
+Took a while to figure that one out but I've done it.
+
+NOTE: I think because I'm using docker there's an added layer of complexity getting roles etc..
+
+> docker run --name THE-test-db -d -p 5432:5432 -e POSTGRES_PASSWORD=freddielovescake -e POSTGRES_USER=freddie -d postgres
+// GET IN 
+docker exec -it THE-test-db psql -U freddie
+// COPY
+docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
+// RUN FILE
+docker exec THE-test-db psql postgres -U freddie  -f /docker-entrypoint-initdb.d/dump.sql
+//docker exec -it THE-test-db psql -U freddie
+//psql -U Freddie -d THE-test-db -a -f /docker-entrypoint-initdb.d/dump.sql
+THIS WORKS - docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+// TOGETHER 
+docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
+docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+
+- Step 2. Create a script that:
+  1. Creates the table (sort of optional now because I can do that before hand)
+  2. pulls in json and inserts them into the table.

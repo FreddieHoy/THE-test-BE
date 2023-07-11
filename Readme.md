@@ -1,10 +1,14 @@
 # Freds Notes - test round 2
 
+
+
 I've decided to have another go doing what I want to really learn about which is setting up the BE using the json object and serving it as a api.. if I get to that!
 
 > Setup storage mechanism to store the data and allow for adding new data (rather than using static JSON files)
 
-- Step 1 run any SQL script from vs code in the docker postgres data base.. (hOw dO i dO tHaT ?)
+### Importing the Json into a postgres DB.
+
+##### - Step 1 run any SQL script from vs code in the docker postgres data base.. (hOw dO i dO tHaT ?)
 
 Took a while to figure that one out but I've done it.
 
@@ -28,7 +32,7 @@ NOTE: I think because I'm using docker there's an added layer of complexity gett
 (Challenge) - What would a BE dev actually do about the subject? Seems like it should have it's own table. Although the only columns would be id and name I think? Maybe History..
 I've decided it shouldn't so going to press ahead with the task.
 
-- Step 2. Create a script that:
+##### - Step 2. Create a script that:
   1. Creates the table (sort of optional now because I can do that before hand)
   2. pulls in json and inserts them into the table.
 
@@ -36,7 +40,7 @@ Using this - https://konbert.com/blog/import-json-into-postgres-using-copy
 
 Apparently the Json file needs to be a NDJSON file.
 
-> jq -c '.[]' institutions.json > institutions.json
+> jq -c '.[]' institutions.json > institutionsNew.json
 
 connect to db using
 
@@ -60,7 +64,7 @@ try and query the data
 
 > SELECT data->>'id', data->>'name', data->>'country', data->>'address' FROM temp;
 
-ohhhhh so far so gooood babyyy!
+ohh so far so good babyy!
 
 Okay so this is sort of where the script would come in but I might just do it manually
 
@@ -80,11 +84,48 @@ SELECT * FROM INSTITUTIONS;
 
 So, It's there in my data base! I was connected to the database on table plus as the user 'postgres' not 'freddie' which is why I could only see it in the cmd line
 
+Okay going to try and import submissions now.
+
+> jq -c '.[]' submissions.json > submissionsNew.json
+
+> docker cp ./submissionsNew.json THE-test-db:/docker-entrypoint-initdb.d/submissionsNew.json
+
+> \COPY temp2 FROM '/docker-entrypoint-initdb.d/submissionsNew.json';
+
+> CREATE TABLE SUBMISSIONS (
+  id VARCHAR(200),
+  institution_id VARCHAR(200),
+  year INTEGER,
+  students_total INTEGER,
+  undergraduates_total INTEGER,
+  postgraduates_total INTEGER,
+  staff_total INTEGER,
+  academic_papers INTEGER,
+  institution_income INTEGER,
+  subjects JSON
+);
+
+
+> INSERT INTO SUBMISSIONS
+> SELECT data->>'id', data->>'institution_id', (data->>'year')::integer, (data->>'students_total')::integer, (data->>'undergraduates_total')::integer, (data->>'postgraduates_total')::integer, (data->>'staff_total')::integer, (data->>'academic_papers')::integer, (data->>'institution_income')::integer, (data->>'subjects')::JSON
+FROM temp2;
+
+#### There we go I now have all the data in a postgres database
+
+---
+
+### Going to create an api now to interact with the data
+
+It's going to be node.js express.js.
 
 
 
 
 
+
+
+
+---
 
 # Times Higher Education take home test
 

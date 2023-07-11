@@ -1,27 +1,12 @@
-type Institution = {
-  name: string;
-  address: string;
-  country: string;
-  region: string;
-  id: string;
-};
+import express from "express";
 
-type Subject = {
-  name: String;
-  academic_papers: number;
-  students_total: number;
-  student_rating: number;
-};
+const app = express();
+const port = 3000;
 
-type Submission = {
-  id: string;
-  institution_id: string;
-  year: number;
-  students_total: number;
-  undergraduates_total: number;
-  postgraduates_total: number;
-  staff_total: number;
-  academic_papers: number;
-  institution_income: number;
-  subjects: Subject[];
-};
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});

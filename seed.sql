@@ -17,3 +17,18 @@ CREATE TABLE INSTITUTIONS (
   address VARCHAR(200),
   region VARCHAR(200)
 );
+
+
+CREATE TABLE SUBMISSIONS (
+  id VARCHAR(200),
+  institution_id VARCHAR(200),
+  year INTEGER,
+  students_total INTEGER,
+  undergraduates_total INTEGER,
+  postgraduates_total INTEGER,
+  staff_total INTEGER,
+  academic_papers INTEGER,
+  institution_income INTEGER,
+  subjects JSON
+);
+

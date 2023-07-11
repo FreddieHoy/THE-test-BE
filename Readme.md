@@ -1,12 +1,12 @@
 # Freds Notes - test round 2
 
+I've decided to have another go doing what I want to really learn about which is setting up the BE importing json file into a postgres DB and serving it as a api. (In the end I just added 1 end point to add more JSON to the submissions table)
 
-
-I've decided to have another go doing what I want to really learn about which is setting up the BE using the json object and serving it as a api.. if I get to that!
+So aim: 
 
 > Setup storage mechanism to store the data and allow for adding new data (rather than using static JSON files)
 
-### Importing the Json into a postgres DB.
+## Importing the Json into a postgres DB.
 
 ##### - Step 1 run any SQL script from vs code in the docker postgres data base.. (hOw dO i dO tHaT ?)
 
@@ -14,23 +14,25 @@ Took a while to figure that one out but I've done it.
 
 NOTE: I think because I'm using docker there's an added layer of complexity getting roles etc..
 
-> docker run --name THE-test-db -d -p 5432:5432 -e POSTGRES_PASSWORD=freddielovescake -e POSTGRES_USER=freddie -d postgres
-> // GET IN 
+> docker run --name THE-test-db -d -p 5432:5432 -e POSTGRES_PASSWORD=****** -e POSTGRES_USER=freddie -d postgres
+
 > docker exec -it THE-test-db psql -U freddie
-> // COPY
+
 > docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
-> // RUN FILE
+
 > docker exec THE-test-db psql postgres -U freddie  -f /docker-entrypoint-initdb.d/dump.sql
-> //docker exec -it THE-test-db psql -U freddie
-> //psql -U Freddie -d THE-test-db -a -f /docker-entrypoint-initdb.d/dump.sql
-> THIS WORKS - docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
-> // TOGETHER 
+
+THIS WORKS!
+> docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+
+TOGETHER 
 > docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
 > docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
 
 
 (Challenge) - What would a BE dev actually do about the subject? Seems like it should have it's own table. Although the only columns would be id and name I think? Maybe History..
 I've decided it shouldn't so going to press ahead with the task.
+**More on this below**
 
 ##### - Step 2. Create a script that:
   1. Creates the table (sort of optional now because I can do that before hand)
@@ -40,7 +42,7 @@ Using this - https://konbert.com/blog/import-json-into-postgres-using-copy
 
 Apparently the Json file needs to be a NDJSON file.
 
-> jq -c '.[]' institutions.json > institutionsNew.json
+> jq -c '.[]' institutions.json > institutionsND.json
 
 connect to db using
 
@@ -52,13 +54,13 @@ Temp table
 
 Here's where it get a little tricky I need to copy on the json file into docker and then use the copy command.
 
-> docker cp ./institutionsNew.json THE-test-db:/docker-entrypoint-initdb.d/institutionsNew.json
+> docker cp ./institutionsND.json THE-test-db:/docker-entrypoint-initdb.d/institutionsND.json
 
 then back into docker
 
 > docker exec -it THE-test-db psql -U freddie
 Then inside docker psql command line
-> \COPY temp (data) FROM '/docker-entrypoint-initdb.d/institutionsNew.json';
+> \COPY temp (data) FROM '/docker-entrypoint-initdb.d/institutionsND.json';
 
 try and query the data 
 
@@ -84,13 +86,13 @@ SELECT * FROM INSTITUTIONS;
 
 So, It's there in my data base! I was connected to the database on table plus as the user 'postgres' not 'freddie' which is why I could only see it in the cmd line
 
-Okay going to try and import submissions now.
+Okay going to try and import submissions now. Leaving the commands I used below.
 
-> jq -c '.[]' submissions.json > submissionsNew.json
+> jq -c '.[]' submissions.json > submissionsND.json
 
-> docker cp ./submissionsNew.json THE-test-db:/docker-entrypoint-initdb.d/submissionsNew.json
+> docker cp ./submissionsND.json THE-test-db:/docker-entrypoint-initdb.d/submissionsND.json
 
-> \COPY temp2 FROM '/docker-entrypoint-initdb.d/submissionsNew.json';
+> \COPY temp2 FROM '/docker-entrypoint-initdb.d/submissionsND.json';
 
 > CREATE TABLE SUBMISSIONS (
   id VARCHAR(200),
@@ -110,20 +112,38 @@ Okay going to try and import submissions now.
 > SELECT data->>'id', data->>'institution_id', (data->>'year')::integer, (data->>'students_total')::integer, (data->>'undergraduates_total')::integer, (data->>'postgraduates_total')::integer, (data->>'staff_total')::integer, (data->>'academic_papers')::integer, (data->>'institution_income')::integer, (data->>'subjects')::JSON
 FROM temp2;
 
-#### There we go I now have all the data in a postgres database
+**There we go I now have all the data in a postgres database!!**
 
 ---
 
-### Going to create an api now to interact with the data
+## Going to create an api endpoint  to interact with the DB.
 
 It's going to be node.js express.js.
 
+Data for submissions could be sent from a client like where it has come from as JSON.
+
+So I want to just built an endpoint that takes JSON add tries to add that to the database.
+
+I can actually try to parse the JSON object with TS and then add it to the DB. So it would be a different process they just reading from a JSON file. So if another json file was found this end point would handle adding the results to the DB.
+
+Okay I've created a endpoint POST /submissionsJSON
+
+I've written how I would handle parsing the JSON data and how I would use a type guard to ensure the data is safe..
+
+**What I'm really interested in** is the issue around the **subjects** attribute. 
+
+The subject fields can't be made into there own table because the entities values change on every submission. 
+
+It would create the exact same number of entities on Submissions table as the Subjects table... Maybe that's good? 
+
+It would mean giving EVERY subject option an id. And then the subjects prop would be an array of foreign keys?! Maybe that would work nicely??
 
 
+# Conclusion
 
+I'm going to end this here. Definetly learned quite a bit about using postgres, docker containers and interacting JSON with DBs.
 
-
-
+I want to learn more about storing this 'subjects' data case. Will ask around! 
 
 ---
 

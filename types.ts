@@ -1,4 +1,4 @@
-type Institution = {
+export type Institution = {
   name: string;
   address: string;
   country: string;
@@ -6,14 +6,14 @@ type Institution = {
   id: string;
 };
 
-type Subject = {
+export type Subject = {
   name: String;
   academic_papers: number;
   students_total: number;
   student_rating: number;
 };
 
-type Submission = {
+export type Submission = {
   id: string;
   institution_id: string;
   year: number;
@@ -23,5 +23,5 @@ type Submission = {
   staff_total: number;
   academic_papers: number;
   institution_income: number;
-  subjects: Subject[];
+  subjects: JSON;
 };

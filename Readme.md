@@ -1,3 +1,36 @@
+# Freds Notes - test round 2
+
+I've decided to have another go doing what I want to really learn about which is setting up the BE using the json object and serving it as a api.. if I get to that!
+
+> Setup storage mechanism to store the data and allow for adding new data (rather than using static JSON files)
+
+- Step 1 run any SQL script from vs code in the docker postgres data base.. (hOw dO i dO tHaT ?)
+
+Took a while to figure that one out but I've done it.
+
+NOTE: I think because I'm using docker there's an added layer of complexity getting roles etc..
+
+> docker run --name THE-test-db -d -p 5432:5432 -e POSTGRES_PASSWORD=freddielovescake -e POSTGRES_USER=freddie -d postgres
+// GET IN 
+docker exec -it THE-test-db psql -U freddie
+// COPY
+docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
+// RUN FILE
+docker exec THE-test-db psql postgres -U freddie  -f /docker-entrypoint-initdb.d/dump.sql
+//docker exec -it THE-test-db psql -U freddie
+//psql -U Freddie -d THE-test-db -a -f /docker-entrypoint-initdb.d/dump.sql
+THIS WORKS - docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+// TOGETHER 
+docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
+docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+
+- Step 2. Create a script that:
+  1. Creates the table (sort of optional now because I can do that before hand)
+  2. pulls in json and inserts them into the table.
+
+
+
+
 # Times Higher Education take home test
 
 At Time Higher Education our aim is give the best insights we can into higher education for both students and academics. In this test, we'd like to give you a taste of that and give you the opportunity to show us how you could improve this
@@ -31,31 +64,3 @@ Display and interact the data:
  - Show a list of subjects and which institutions you can study them at
 
 
-# Freds Notes
-
-> Setup storage mechanism to store the data and allow for adding new data (rather than using static JSON files)
-
-
-- Step 1 run any SQL script from vs code in the docker postgres data base.. (hOw dO i dO tHaT ?)
-
-Took a while to figure that one out but I've done it.
-
-NOTE: I think because I'm using docker there's an added layer of complexity getting roles etc..
-
-> docker run --name THE-test-db -d -p 5432:5432 -e POSTGRES_PASSWORD=freddielovescake -e POSTGRES_USER=freddie -d postgres
-// GET IN 
-docker exec -it THE-test-db psql -U freddie
-// COPY
-docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
-// RUN FILE
-docker exec THE-test-db psql postgres -U freddie  -f /docker-entrypoint-initdb.d/dump.sql
-//docker exec -it THE-test-db psql -U freddie
-//psql -U Freddie -d THE-test-db -a -f /docker-entrypoint-initdb.d/dump.sql
-THIS WORKS - docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
-// TOGETHER 
-docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
-docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
-
-- Step 2. Create a script that:
-  1. Creates the table (sort of optional now because I can do that before hand)
-  2. pulls in json and inserts them into the table.

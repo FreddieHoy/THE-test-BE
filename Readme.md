@@ -11,22 +11,77 @@ Took a while to figure that one out but I've done it.
 NOTE: I think because I'm using docker there's an added layer of complexity getting roles etc..
 
 > docker run --name THE-test-db -d -p 5432:5432 -e POSTGRES_PASSWORD=freddielovescake -e POSTGRES_USER=freddie -d postgres
-// GET IN 
-docker exec -it THE-test-db psql -U freddie
-// COPY
-docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
-// RUN FILE
-docker exec THE-test-db psql postgres -U freddie  -f /docker-entrypoint-initdb.d/dump.sql
-//docker exec -it THE-test-db psql -U freddie
-//psql -U Freddie -d THE-test-db -a -f /docker-entrypoint-initdb.d/dump.sql
-THIS WORKS - docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
-// TOGETHER 
-docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
-docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+> // GET IN 
+> docker exec -it THE-test-db psql -U freddie
+> // COPY
+> docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
+> // RUN FILE
+> docker exec THE-test-db psql postgres -U freddie  -f /docker-entrypoint-initdb.d/dump.sql
+> //docker exec -it THE-test-db psql -U freddie
+> //psql -U Freddie -d THE-test-db -a -f /docker-entrypoint-initdb.d/dump.sql
+> THIS WORKS - docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+> // TOGETHER 
+> docker cp ./seed.sql THE-test-db:/docker-entrypoint-initdb.d/dump.sql
+> docker exec -it THE-test-db psql -U freddie -d postgres -a -f /docker-entrypoint-initdb.d/dump.sql
+
+
+(Challenge) - What would a BE dev actually do about the subject? Seems like it should have it's own table. Although the only columns would be id and name I think? Maybe History..
+I've decided it shouldn't so going to press ahead with the task.
 
 - Step 2. Create a script that:
   1. Creates the table (sort of optional now because I can do that before hand)
   2. pulls in json and inserts them into the table.
+
+Using this - https://konbert.com/blog/import-json-into-postgres-using-copy 
+
+Apparently the Json file needs to be a NDJSON file.
+
+> jq -c '.[]' institutions.json > institutions.json
+
+connect to db using
+
+> docker exec -it THE-test-db psql -U freddie
+
+Temp table
+
+> CREATE TABLE temp (data jsonb);
+
+Here's where it get a little tricky I need to copy on the json file into docker and then use the copy command.
+
+> docker cp ./institutionsNew.json THE-test-db:/docker-entrypoint-initdb.d/institutionsNew.json
+
+then back into docker
+
+> docker exec -it THE-test-db psql -U freddie
+Then inside docker psql command line
+> \COPY temp (data) FROM '/docker-entrypoint-initdb.d/institutionsNew.json';
+
+try and query the data 
+
+> SELECT data->>'id', data->>'name', data->>'country', data->>'address' FROM temp;
+
+ohhhhh so far so gooood babyyy!
+
+Okay so this is sort of where the script would come in but I might just do it manually
+
+CREATE TABLE INSTITUTIONS (
+  id PRIMARY KEY NOT NULL,
+  name VARCHAR(200),
+  country VARCHAR(200),
+  address VARCHAR(200),
+  region VARCHAR(200)
+);
+
+INSERT INTO INSTITUTIONS
+SELECT data->>'id', data->>'name', data->>'country', data->>'address', data->>'region'
+FROM temp;
+
+SELECT * FROM INSTITUTIONS;
+
+So, It's there in my data base! I was connected to the database on table plus as the user 'postgres' not 'freddie' which is why I could only see it in the cmd line
+
+
+
 
 
 
